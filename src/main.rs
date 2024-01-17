@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #[macro_use] extern crate rocket;
 
 mod handlers;
@@ -10,3 +11,8 @@ fn rocket() -> _ {
         .mount("/", routes![health_handler])
         .mount("/", routes![echo_handler])
 }
+=======
+fn main() {
+    println!("Hello, world!");
+}
+>>>>>>> master
