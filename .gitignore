@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Cargo.lock
 target/
 guide/build/
@@ -27,6 +26,3 @@ guide/build/
 # code coverage
 /lcov.info
 /codecov.json
-=======
-/target
->>>>>>> master
