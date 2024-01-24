@@ -12,6 +12,8 @@ pub fn health_handler() -> Json<HealthResponse> {
     let status = String::from("ok");
     let health_response = HealthResponse {status};
 
+    debug!("Health handler executed successfully");
+
     Json(health_response)
 }
 
@@ -29,6 +31,8 @@ pub struct EchoResponse {
 pub fn echo_handler(text: Json<EchoRequest>) -> Json<EchoResponse> {
     let response = String::from(text.text.clone());
     let response = EchoResponse {response};
+
+    debug!("Echo handler executed successfully");
     
     Json(response)
 }
