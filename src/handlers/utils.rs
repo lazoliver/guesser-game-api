@@ -12,7 +12,7 @@ pub fn health_handler() -> Json<HealthResponse> {
     let status = String::from("ok");
     let health_response = HealthResponse {status};
 
-    info!("Health handler executed successfully");
+    debug!("Health handler executed successfully");
 
     Json(health_response)
 }
