@@ -32,7 +32,7 @@ pub fn echo_handler(text: Json<EchoRequest>) -> Json<EchoResponse> {
     let response = String::from(text.text.clone());
     let response = EchoResponse {response};
 
-    info!("Echo handler executed successfully");
+    debug!("Echo handler executed successfully");
     
     Json(response)
 }
