@@ -9,6 +9,7 @@ fn default_api_port() -> u16 {
 pub struct Config {
     #[serde(default = "default_api_port")]
     pub api_port: u16,
+    pub mongo_uri: String
 }
 
 impl Config {
