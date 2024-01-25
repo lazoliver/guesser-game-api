@@ -4,6 +4,8 @@ use env_logger::Env;
 
 mod handlers;
 mod config;
+mod storage;
+mod error;
 
 use crate::config::Config;
 use crate::config::ReleaseMode;
@@ -11,7 +13,7 @@ use crate::config::ReleaseMode;
 use crate::handlers::utils::{health_handler, echo_handler};
 
 #[launch]
-fn rocket() -> _ {
+async fn rocket() -> _ {
     let config = Config::new();
 
     let default_level = match config.release_mode {
