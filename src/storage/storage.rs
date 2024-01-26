@@ -1,4 +1,4 @@
-use mongodb::{Client, options::ClientOptions, Collection, Database};
+use mongodb::{Client, options::ClientOptions, Collection, Database, bson::doc};
 
 use crate::error::AppError;
 
@@ -23,5 +23,15 @@ impl Storage {
             db,
             secret_word_collection
         })
+    }
+
+    pub async fn health_check(&self) -> bool {
+        match self.db.run_command(doc!{"ismaster": 1}, None).await {
+            Ok(_document) => return true,
+            Err(e) => {
+                error!("Error getting MongoDB health status: {}", e.to_string());
+                return false
+            }
+        }
     }
 }
