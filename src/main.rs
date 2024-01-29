@@ -14,6 +14,7 @@ use crate::storage::storage::Storage;
 use crate::config::ReleaseMode;
 
 use crate::handlers::utils::{health_handler, echo_handler, full_health_handler};
+use crate::handlers::secret::{create_secret_handler};
 
 #[launch]
 async fn rocket() -> _ {
@@ -37,4 +38,5 @@ async fn rocket() -> _ {
         .manage(SystemTime::now())
         .configure(rocket::Config::figment().merge(("port", config.api_port)))
         .mount("/", routes![health_handler, echo_handler, full_health_handler])
+        .mount("/", routes![create_secret_handler])
 }

@@ -2,12 +2,12 @@ use mongodb::{Client, options::ClientOptions, Collection, Database, bson::doc};
 
 use crate::error::AppError;
 
-use super::secret_word::SecretWord;
+use super::secret::Secret;
 
 pub struct Storage {
     pub client: Client,
     pub db: Database,
-    pub secret_word_collection: Collection<SecretWord>
+    pub secret_collection: Collection<Secret>
 }
 
 impl Storage {
@@ -16,12 +16,12 @@ impl Storage {
         client_options.app_name = Some("Guesser Game Api".to_string());
         let client = Client::with_options(client_options)?;
         let db = client.database("guesser-game-api");
-        let secret_word_collection = db.collection::<SecretWord>("secret");
+        let secret_collection = db.collection::<Secret>("secret");
 
         Ok(Self {
             client,
             db,
-            secret_word_collection
+            secret_collection
         })
     }
 
