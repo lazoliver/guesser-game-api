@@ -1,4 +1,5 @@
-use mongodb::{Client, options::ClientOptions, Collection, Database, bson::doc};
+use mongodb::{Client, options::ClientOptions, Collection, Database, bson::{doc, spec::BinarySubtype, Binary}};
+use uuid::Uuid;
 
 use crate::error::AppError;
 
@@ -32,6 +33,13 @@ impl Storage {
                 error!("Error getting MongoDB health status: {}", e.to_string());
                 return false
             }
+        }
+    }
+
+    pub fn uuid_to_binary(&self, id: Uuid) -> Binary {
+        Binary {
+            subtype: BinarySubtype::Generic,
+            bytes: id.as_bytes().to_vec(),
         }
     }
 }

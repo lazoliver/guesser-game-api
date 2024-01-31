@@ -1,8 +1,7 @@
-use rocket::{get, post};
+use rocket::{post};
 use rocket::State;
-use crate::error::AppError;
 use crate::{Storage, storage::secret::NewSecret};
-use rocket::serde::{Serialize, Deserialize, Serializer};
+use rocket::serde::{Serialize, Deserialize};
 use rocket::serde::json::Json;
 
 #[derive(Deserialize)]

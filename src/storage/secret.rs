@@ -1,5 +1,7 @@
-use rocket::serde::{uuid::Uuid, Deserialize, Serialize};
-use mongodb::results::InsertOneResult;
+use rocket::serde::{Deserialize, Serialize};
+use mongodb::{bson::doc, results::InsertOneResult};
+use uuid::Uuid;
+
 use crate::error::AppError;
 
 use super::storage::Storage;
@@ -12,7 +14,7 @@ pub struct NewSecret {
     pub secret: String
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Secret {
     pub clue1: String,
     pub clue2: String,
@@ -36,5 +38,13 @@ impl Storage {
         };
 
         Ok(self.secret_collection.insert_one(secret.clone(), None).await?)
+    }
+
+    pub async fn get_secret(&self, secret_id: Uuid) -> Result<Secret, AppError> {
+        let filter = doc! {"_id": self.uuid_to_binary(secret_id) };
+        match self.secret_collection.find_one(filter, None).await? {
+            Some(secret) => Ok(secret),
+            None => Err(AppError::NotFound)
+        }
     }
 }
