@@ -10,7 +10,7 @@ mod storage;
 mod error;
 
 use crate::config::Config;
-use crate::storage::storage::Storage;
+use crate::storage::storage::{Storage, AttemptCountRule};
 use crate::config::ReleaseMode;
 
 use crate::handlers::utils::{health_handler, echo_handler, full_health_handler};
@@ -18,6 +18,12 @@ use crate::handlers::utils::{health_handler, echo_handler, full_health_handler};
 #[launch]
 async fn rocket() -> _ {
     let config = Config::new();
+
+    let attempts = AttemptCountRule {
+        clue1_attempts: config.clue1_attempts,
+        clue2_attempts: config.clue2_attempts,
+        clue3_attempts: config.clue3_attempts
+    };
 
     let storage = Storage::new(config.mongo_uri).await.expect("Error to connecting database");
 
@@ -35,6 +41,7 @@ async fn rocket() -> _ {
     rocket::build()
         .manage(storage)
         .manage(SystemTime::now())
+        .manage(attempts)
         .configure(rocket::Config::figment().merge(("port", config.api_port)))
         .mount("/", routes![health_handler, echo_handler, full_health_handler])
 }

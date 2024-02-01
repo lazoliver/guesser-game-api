@@ -20,3 +20,10 @@ features = ["json"]
 version = "0.4.10"
 default-features = false
 features = ["json"]
+
+[dependencies.uuid]
+version = "1.7.0"
+features = [
+    "v4",
+    "fast-rng",
+]

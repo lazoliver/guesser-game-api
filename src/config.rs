@@ -16,6 +16,9 @@ fn default_api_port() -> u16 {
 pub struct Config {
     #[serde(default = "default_api_port")]
     pub api_port: u16,
+    pub clue1_attempts: u16,
+    pub clue2_attempts: u16,
+    pub clue3_attempts: u16,
     pub mongo_uri: String,
     pub release_mode: ReleaseMode
 }
