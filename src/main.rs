@@ -1,29 +1,30 @@
-#[macro_use] extern crate rocket;
-
+#[macro_use]
+extern crate rocket;
+use env_logger::Env;
 use std::time::SystemTime;
 
-use env_logger::Env;
-
-mod handlers;
 mod config;
-mod storage;
 mod error;
+mod handlers;
+mod storage;
 
 use crate::config::Config;
-use crate::storage::storage::Storage;
 use crate::config::ReleaseMode;
+use crate::storage::storage::Storage;
 
-use crate::handlers::utils::{health_handler, echo_handler, full_health_handler};
+use crate::handlers::utils::{echo_handler, full_health_handler, health_handler};
 
 #[launch]
 async fn rocket() -> _ {
     let config = Config::new();
 
-    let storage = Storage::new(config.mongo_uri).await.expect("Error to connecting database");
+    let storage = Storage::new(config.mongo_uri)
+        .await
+        .expect("Error to connecting database");
 
     let default_level = match config.release_mode {
         ReleaseMode::Dev => "debug",
-        ReleaseMode::Prod => "info"
+        ReleaseMode::Prod => "info",
     };
 
     let env = Env::default().default_filter_or(default_level);
@@ -36,5 +37,8 @@ async fn rocket() -> _ {
         .manage(storage)
         .manage(SystemTime::now())
         .configure(rocket::Config::figment().merge(("port", config.api_port)))
-        .mount("/", routes![health_handler, echo_handler, full_health_handler])
+        .mount(
+            "/",
+            routes![health_handler, echo_handler, full_health_handler],
+        )
 }

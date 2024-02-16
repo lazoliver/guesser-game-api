@@ -1,2 +1,2 @@
 pub mod storage;
-pub mod secret_word;
+pub mod secret;

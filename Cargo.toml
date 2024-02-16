@@ -11,6 +11,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 mongodb = "2.7.1"
 env_logger = "0.10.0"
+sha3 = "0.10.8"
+hex = "0.4.3"
 
 [dependencies.rocket]
 version = "0.5.0"
@@ -20,3 +22,10 @@ features = ["json"]
 version = "0.4.10"
 default-features = false
 features = ["json"]
+
+[dependencies.uuid]
+version = "1.7.0"
+features = [
+    "v4",
+    "fast-rng",
+]
