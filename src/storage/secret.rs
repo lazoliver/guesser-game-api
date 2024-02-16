@@ -1,12 +1,10 @@
-use crate::{error::AppError};
-use rocket::tokio::process;
-use serde::{Serialize, Deserialize};
-use mongodb::{bson::doc, results::InsertOneResult};
+use crate::error::AppError;
+use mongodb::bson::{doc, Bson};
+use serde::{Deserialize, Serialize};
+use sha3::{Digest, Keccak256};
 use uuid::Uuid;
 
-use sha3::{Digest, Keccak256};
-
-use super::storage::{AttemptCountRule, Storage};
+use super::storage::Storage;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SecretEntity {
@@ -17,14 +15,14 @@ pub struct SecretEntity {
     pub clue3: String,
     pub guess_attempts: u16,
     pub guesser: Option<String>,
-    pub guessed_secret: Option<String>
+    pub guessed_secret: Option<String>,
 }
 
 pub struct NewSecret {
     pub secret: String,
     pub clue1: String,
     pub clue2: String,
-    pub clue3: String
+    pub clue3: String,
 }
 
 impl Storage {
@@ -46,7 +44,9 @@ impl Storage {
             guessed_secret: None,
         };
 
-        self.secret_collection.insert_one(secret.clone(), None).await?;
+        self.secret_collection
+            .insert_one(secret.clone(), None)
+            .await?;
 
         let created_secret = self.get_secret_entity(secret.id).await?;
 
@@ -57,15 +57,60 @@ impl Storage {
         let filter = doc! {"id": self.uuid_to_binary(secret_id)};
         match self.secret_collection.find_one(filter, None).await? {
             Some(secret_entity) => Ok(secret_entity),
-            None => Err(AppError::NotFound)
+            None => Err(AppError::NotFound),
         }
     }
 
-    pub async fn guess_secret(&self, secret_id: Uuid, guess: String, username: String) {
-        // 1. Pegar segredo do banco;
-        // 2. Verificar guesser, se existir retornar erro, se não seguir, AppError<AlreadyGuessed>;
-        // 3. Fazer hash/encode da guess;
-        // 4. Checar se a hash de guess e o secret são iguais, se sim salva no banco de dados o SecretEntity com Guesser e Guessed_Secret e retonra o segredo;
-        // 5. Se não forem iguas as hashs de Guess e Secret, aumentar o contador de attempts e retorna o segredo;
+    pub async fn guess_secret(
+        &self,
+        secret_id: Uuid,
+        guess: String,
+        username: String,
+    ) -> Result<SecretEntity, AppError> {
+        let secret = self.get_secret_entity(secret_id).await?;
+
+        if secret.guesser.is_some() {
+            return Err(AppError::AlreadyGuessed);
+        };
+
+        let mut hasher = Keccak256::new();
+
+        hasher.update(guess.clone());
+
+        let hashed_guess = hex::encode(hasher.finalize().to_vec());
+
+        if hashed_guess != secret.secret {
+            let update_attempts = secret.guess_attempts + 1;
+
+            let filter = doc! {"id": self.uuid_to_binary(secret_id)};
+
+            let updated_attempts =
+                doc! {"$set": {"guess_attempts": Bson::Int32(update_attempts as i32)}};
+
+            self.secret_collection
+                .update_one(filter, updated_attempts, None)
+                .await?;
+
+            let secret = self.get_secret_entity(secret_id.clone()).await?;
+
+            return Ok(secret);
+        };
+
+        if hashed_guess == secret.secret {
+            let filter = doc! {"id": self.uuid_to_binary(secret_id)};
+
+            let update_secret_entity =
+                doc! {"$set": {"guesser": username, "guessed_secret": guess}};
+
+            self.secret_collection
+                .update_one(filter, update_secret_entity, None)
+                .await?;
+
+            let secret = self.get_secret_entity(secret_id.clone()).await?;
+
+            return Ok(secret);
+        }
+
+        return Ok(secret);
     }
 }

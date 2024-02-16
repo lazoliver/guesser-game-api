@@ -1,5 +1,6 @@
 #[derive(Debug)]
 pub enum AppError {
+    AlreadyGuessed,
     DuplicateEntryError,
     MongoDbError,
     NotFound
