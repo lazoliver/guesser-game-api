@@ -11,19 +11,13 @@ pub struct Storage {
     pub secret_collection: Collection<SecretEntity>
 }
 
-pub struct AttemptCountRule {
-    pub clue1_attempts: u16,
-    pub clue2_attempts: u16,
-    pub clue3_attempts: u16
-}
-
 impl Storage {
     pub async fn new(mongo_uri: String) -> Result<Self, AppError> {
         let mut client_options = ClientOptions::parse(mongo_uri.clone()).await?;
         client_options.app_name = Some("Guesser Game Api".to_string());
         let client = Client::with_options(client_options)?;
         let db = client.database("guesser-game-api");
-        let secret_collection = db.collection::<SecretEntity>("secret");
+        let secret_collection = db.collection::<SecretEntity>("secrets");
 
         Ok(Self {
             client,

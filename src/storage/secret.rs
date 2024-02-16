@@ -95,21 +95,18 @@ impl Storage {
 
             return Ok(secret);
         };
+        
 
-        if hashed_guess == secret.secret {
-            let filter = doc! {"id": self.uuid_to_binary(secret_id)};
+        let filter = doc! {"id": self.uuid_to_binary(secret_id)};
 
-            let update_secret_entity =
-                doc! {"$set": {"guesser": username, "guessed_secret": guess}};
+        let update_secret_entity =
+            doc! {"$set": {"guesser": username, "guessed_secret": guess}};
 
-            self.secret_collection
-                .update_one(filter, update_secret_entity, None)
-                .await?;
+        self.secret_collection
+            .update_one(filter, update_secret_entity, None)
+            .await?;
 
-            let secret = self.get_secret_entity(secret_id.clone()).await?;
-
-            return Ok(secret);
-        }
+        let secret = self.get_secret_entity(secret_id.clone()).await?;
 
         return Ok(secret);
     }
