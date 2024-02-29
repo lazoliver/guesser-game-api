@@ -5,7 +5,7 @@ use serde::Deserialize;
 #[serde(rename_all = "snake_case")]
 pub enum ReleaseMode {
     Dev,
-    Prod
+    Prod,
 }
 
 fn default_api_port() -> u16 {
@@ -16,8 +16,11 @@ fn default_api_port() -> u16 {
 pub struct Config {
     #[serde(default = "default_api_port")]
     pub api_port: u16,
+    pub clue1_attempts: u16,
+    pub clue2_attempts: u16,
+    pub clue3_attempts: u16,
     pub mongo_uri: String,
-    pub release_mode: ReleaseMode
+    pub release_mode: ReleaseMode,
 }
 
 impl Config {
