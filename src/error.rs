@@ -3,7 +3,7 @@ pub enum AppError {
     AlreadyGuessed,
     DuplicateEntryError,
     MongoDbError,
-    NotFound
+    NotFound,
 }
 
 impl From<mongodb::error::Error> for AppError {

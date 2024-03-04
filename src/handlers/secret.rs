@@ -1,13 +1,20 @@
+use rocket::http::Status;
+use rocket::response::status;
 use rocket::serde::json::Json;
-use rocket::State;
+use rocket::{Response, State};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
+use serde_json::Value;
 use uuid::Uuid;
 
-use crate::storage::{
-    secret::{NewSecret, Secret},
-    storage::AttemptCountRule,
-};
 use crate::Storage;
+use crate::{
+    error::AppError,
+    storage::{
+        secret::{NewSecret, Secret, SecretEntity},
+        storage::AttemptCountRule,
+    },
+};
 
 #[derive(Serialize)]
 pub struct SecretResponse {
@@ -50,16 +57,27 @@ pub async fn get_secret_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
     id: &str,
-) -> Json<Secret> {
+) -> Result<Json<Secret>, status::Custom<Json<Value>>> {
     let plain_id = Uuid::parse_str(id).unwrap();
 
-    let secret = storage.get_secret_entity(plain_id).await.unwrap();
+    let secret_result = storage.get_secret_entity(plain_id).await;
+
+    let secret = match secret_result {
+        Ok(secret) => secret,
+        Err(AppError::NotFound) => {
+            return Err(status::Custom(
+                Status::NotFound,
+                Json(json!({"error": "Secret not found."})),
+            ));
+        }
+        _ => todo!(),
+    };
 
     let processed_secret = storage.process_secret(*attempt_rule.inner(), secret);
 
     info!("{:?}", processed_secret);
 
-    Json(processed_secret)
+    Ok(Json(processed_secret))
 }
 
 #[get("/secret/all")]
