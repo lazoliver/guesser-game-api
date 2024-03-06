@@ -22,7 +22,7 @@ pub struct SecretEntity {
     pub guessed_secret: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 pub struct NewSecret {
     pub secret: String,
     pub clue1: String,
@@ -72,6 +72,8 @@ impl Storage {
 
         let processed_secret = self.process_secret(attempt_rule, created_secret);
 
+        debug!("New secret created: {:?}", processed_secret.clone());
+
         Ok(processed_secret)
     }
 
@@ -97,6 +99,8 @@ impl Storage {
             let processed_secret = self.process_secret(attempt_rule, secret);
             secrets.push(processed_secret)
         }
+
+        debug!("Non solved Secrets array has {} items", secrets.len());
 
         return Ok(secrets);
     }

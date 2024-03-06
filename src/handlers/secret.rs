@@ -1,3 +1,4 @@
+use log::debug;
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::serde::json::Json;
@@ -37,7 +38,7 @@ pub async fn create_secret_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
     secret: Json<NewSecret>,
-) -> Json<SecretResponse> {
+) -> Result<Json<SecretResponse>, status::Custom<Json<Value>>> {
     let secret = storage
         .create_secret(*attempt_rule.inner(), secret.into_inner())
         .await
@@ -47,9 +48,9 @@ pub async fn create_secret_handler(
         msg: String::from("Secret successfully created."),
     };
 
-    info!("{:?}", secret);
+    debug!("Create Secret Handler executed successfully.");
 
-    Json(response)
+    Ok(Json(response))
 }
 
 #[get("/secret/<id>")]
@@ -75,7 +76,7 @@ pub async fn get_secret_handler(
 
     let processed_secret = storage.process_secret(*attempt_rule.inner(), secret);
 
-    info!("{:?}", processed_secret);
+    debug!("Get Secret Handler executed successfully.");
 
     Ok(Json(processed_secret))
 }
@@ -94,7 +95,7 @@ pub async fn get_all_secrets_handler(
         secrets: secrets.clone(),
     };
 
-    info!("Secrets array length: {}", secrets.len());
+    debug!("Get All Secrets Handler executed successfully.");
 
     Json(response)
 }
@@ -105,19 +106,35 @@ pub async fn guess_secret_handler(
     attempt_rule: &State<AttemptCountRule>,
     id: &str,
     guess: Json<GuessSecret>,
-) -> Json<Secret> {
+) -> Result<Json<Secret>, status::Custom<Json<Value>>> {
     let plain_id = Uuid::parse_str(id).unwrap();
 
     let guess_secret = storage
         .guess_secret(plain_id, guess.guess.clone(), guess.username.clone())
-        .await
-        .unwrap();
+        .await;
+
+    let guessed_secret = match guess_secret {
+        Ok(secret) => secret,
+        Err(AppError::NotFound) => {
+            return Err(status::Custom(
+                Status::NotFound,
+                Json(json!({"msg": "Secret not found."})),
+            ))
+        }
+        Err(AppError::AlreadyGuessed) => {
+            return Err(status::Custom(
+                Status::Conflict,
+                Json(json!({"msg": "Secret already guessed."})),
+            ))
+        }
+        _ => todo!(),
+    };
 
     let secret = storage.get_secret_entity(plain_id).await.unwrap();
 
     let processed_secret = storage.process_secret(*attempt_rule.inner(), secret);
 
-    info!("{:?}", processed_secret);
+    debug!("Guess Secret Handler executed successfully.");
 
-    Json(processed_secret)
+    Ok(Json(processed_secret))
 }
