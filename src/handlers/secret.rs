@@ -2,12 +2,11 @@ use log::debug;
 use rocket::http::Status;
 use rocket::response::status;
 use rocket::serde::json::Json;
-use rocket::{Response, State};
+use rocket::State;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use serde_json::Value;
 use uuid::Uuid;
-use crate::rocket::futures::TryStreamExt;
 
 use crate::Storage;
 use crate::{
@@ -122,6 +121,29 @@ pub async fn get_all_unguessed_secrets_handler(
     let storage_secrets = storage
         .get_all_unguessed_secrets()
         .await;
+
+    let secret_entities = match storage_secrets {
+        Ok(secrets) => secrets,
+        Err(_) => return Err(status::Custom(Status::InternalServerError, Json(json!({"error": "Internal Server Error."}))))
+    };
+
+    let secrets: Vec<Secret> = secret_entities.into_iter().map(|secret_entity| process_secret(*attempt_rule.inner(), secret_entity)).collect();
+
+    let response = AllSecretsResponse {
+        secrets: secrets.clone(),
+    };
+
+    debug!("Get All Secrets Handler executed successfully.");
+
+    Ok(Json(response))
+}
+
+#[get("/secrets/all")]
+pub async fn get_all_secrets_handler(
+    storage: &State<Storage>,
+    attempt_rule: &State<AttemptCountRule>,
+) -> Result<Json<AllSecretsResponse>, status::Custom<Json<Value>>> {
+    let storage_secrets = storage.get_all_secrets().await;
 
     let secret_entities = match storage_secrets {
         Ok(secrets) => secrets,

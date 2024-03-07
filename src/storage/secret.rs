@@ -89,6 +89,20 @@ impl Storage {
         return Ok(secrets);
     }
 
+    pub async fn get_all_secrets(&self) -> Result<Vec<SecretEntity>, AppError> {
+        let mut cursor = self.secret_collection.find(None, None).await?;
+
+        let mut secrets = Vec::<SecretEntity>::new();
+
+        while let Some(secret) = cursor.try_next().await? {
+            secrets.push(secret)
+        }
+
+        debug!("All Secrets array has {} items", secrets.len());
+
+        return Ok(secrets)
+    }
+
     pub async fn guess_secret(
         &self,
         secret_id: Uuid,
