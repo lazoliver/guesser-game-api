@@ -113,7 +113,7 @@ pub async fn get_secret_handler(
     Ok(Json(processed_secret))
 }
 
-#[get("/secrets")]
+#[get("/secrets?unguessed=true")]
 pub async fn get_all_unguessed_secrets_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
@@ -138,7 +138,7 @@ pub async fn get_all_unguessed_secrets_handler(
     Ok(Json(response))
 }
 
-#[get("/secrets/all")]
+#[get("/secrets")]
 pub async fn get_all_secrets_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
