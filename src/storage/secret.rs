@@ -1,14 +1,11 @@
 use crate::error::AppError;
 use crate::rocket::futures::TryStreamExt;
-use log::info;
 use mongodb::bson::{doc, Bson};
-use rocket::tokio::process;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use uuid::Uuid;
 
 use super::storage::Storage;
-use crate::AttemptCountRule;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct SecretEntity {
@@ -22,7 +19,7 @@ pub struct SecretEntity {
     pub guessed_secret: Option<String>,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct NewSecret {
     pub secret: String,
     pub clue1: String,
@@ -31,10 +28,7 @@ pub struct NewSecret {
 }
 
 impl Storage {
-    pub async fn create_secret(
-        &self,
-        new_secret: NewSecret,
-    ) -> Result<SecretEntity, AppError> {
+    pub async fn create_secret(&self, new_secret: NewSecret) -> Result<SecretEntity, AppError> {
         let mut hasher = Keccak256::new();
 
         hasher.update(new_secret.secret);
@@ -71,9 +65,7 @@ impl Storage {
         }
     }
 
-    pub async fn get_all_unguessed_secrets(
-        &self,
-    ) -> Result<Vec<SecretEntity>, AppError> {
+    pub async fn get_all_unguessed_secrets(&self) -> Result<Vec<SecretEntity>, AppError> {
         let filter = doc! {"guesser": None::<String>};
 
         let mut cursor = self.secret_collection.find(filter, None).await?;

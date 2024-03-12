@@ -15,13 +15,6 @@ pub struct Storage {
     pub secret_collection: Collection<SecretEntity>,
 }
 
-#[derive(Copy, Clone)]
-pub struct AttemptCountRule {
-    pub clue1_attempts: u16,
-    pub clue2_attempts: u16,
-    pub clue3_attempts: u16,
-}
-
 impl Storage {
     pub async fn new(mongo_uri: String) -> Result<Self, AppError> {
         let mut client_options = ClientOptions::parse(mongo_uri.clone()).await?;
