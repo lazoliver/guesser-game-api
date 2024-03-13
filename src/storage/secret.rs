@@ -1,4 +1,5 @@
 use crate::error::AppError;
+use crate::rocket::futures::TryStreamExt;
 use mongodb::bson::{doc, Bson};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
@@ -18,6 +19,7 @@ pub struct SecretEntity {
     pub guessed_secret: Option<String>,
 }
 
+#[derive(Clone, Debug, Deserialize)]
 pub struct NewSecret {
     pub secret: String,
     pub clue1: String,
@@ -50,6 +52,8 @@ impl Storage {
 
         let created_secret = self.get_secret_entity(secret.id).await?;
 
+        debug!("New secret created: {:?}", created_secret.clone());
+
         Ok(created_secret)
     }
 
@@ -59,6 +63,22 @@ impl Storage {
             Some(secret_entity) => Ok(secret_entity),
             None => Err(AppError::NotFound),
         }
+    }
+
+    pub async fn get_all_unguessed_secrets(&self) -> Result<Vec<SecretEntity>, AppError> {
+        let filter = doc! {"guesser": None::<String>};
+
+        let mut cursor = self.secret_collection.find(filter, None).await?;
+
+        let mut secrets = Vec::<SecretEntity>::new();
+
+        while let Some(secret) = cursor.try_next().await? {
+            secrets.push(secret)
+        }
+
+        debug!("Non solved Secrets array has {} items", secrets.len());
+
+        return Ok(secrets);
     }
 
     pub async fn guess_secret(
@@ -95,12 +115,10 @@ impl Storage {
 
             return Ok(secret);
         };
-        
 
         let filter = doc! {"id": self.uuid_to_binary(secret_id)};
 
-        let update_secret_entity =
-            doc! {"$set": {"guesser": username, "guessed_secret": guess}};
+        let update_secret_entity = doc! {"$set": {"guesser": username, "guessed_secret": guess}};
 
         self.secret_collection
             .update_one(filter, update_secret_entity, None)
