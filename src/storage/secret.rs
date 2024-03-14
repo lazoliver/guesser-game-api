@@ -65,8 +65,12 @@ impl Storage {
         }
     }
 
-    pub async fn get_all_unguessed_secrets(&self) -> Result<Vec<SecretEntity>, AppError> {
-        let filter = doc! {"guesser": None::<String>};
+    pub async fn get_all_secrets(&self, with_guessed: bool) -> Result<Vec<SecretEntity>, AppError> {
+        // we want to filter out unguessed secrets if this parameter is false
+        let filter = match with_guessed {
+            true => doc! {},
+            false => doc! {"guesser": None::<String>}
+        };
 
         let mut cursor = self.secret_collection.find(filter, None).await?;
 
@@ -76,7 +80,7 @@ impl Storage {
             secrets.push(secret)
         }
 
-        debug!("Non solved Secrets array has {} items", secrets.len());
+        debug!("Queried Secrets array has {} items", secrets.len());
 
         return Ok(secrets);
     }
