@@ -14,7 +14,7 @@ use crate::handlers::secret::AttemptCountRule;
 use crate::storage::storage::Storage;
 
 use crate::handlers::secret::{
-    create_secret_handler, get_all_unguessed_secrets_handler, get_secret_handler,
+    create_secret_handler, get_all_secrets_handler, get_secret_handler,
     guess_secret_handler,
 };
 use crate::handlers::utils::{echo_handler, full_health_handler, health_handler};
@@ -58,7 +58,7 @@ async fn rocket() -> _ {
             routes![
                 create_secret_handler,
                 get_secret_handler,
-                get_all_unguessed_secrets_handler,
+                get_all_secrets_handler,
                 guess_secret_handler
             ],
         )

@@ -27,6 +27,11 @@ pub struct GuessSecretRequest {
     username: String,
 }
 
+#[derive(Serialize)]
+pub struct AllSecretsResponse {
+    secrets: Vec<Secret>
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct Secret {
     pub id: Uuid,
@@ -145,12 +150,18 @@ pub async fn get_secret_handler(
     Ok(Json(processed_secret))
 }
 
-#[get("/secrets")]
-pub async fn get_all_unguessed_secrets_handler(
+#[get("/secrets?<guessed>")]
+pub async fn get_all_secrets_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
-) -> Result<Json<Vec<Secret>>, status::Custom<Json<Value>>> {
-    let storage_secrets = storage.get_all_unguessed_secrets().await;
+    guessed: Option<bool>
+) -> Result<Json<AllSecretsResponse>, status::Custom<Json<Value>>> {
+    let with_guessed = match guessed {
+        Some(value) => value,
+        None => false 
+    };
+
+    let storage_secrets = storage.get_all_secrets(with_guessed).await;
 
     let secret_entities = match storage_secrets {
         Ok(secrets) => secrets,
@@ -167,12 +178,16 @@ pub async fn get_all_unguessed_secrets_handler(
         .map(|secret_entity| process_secret(*attempt_rule.inner(), secret_entity))
         .collect();
 
+    let response = AllSecretsResponse {
+        secrets
+    };
+
     debug!(
         "Get All Secrets Handler executed successfully and returned {} items.",
-        secrets.len()
+        response.secrets.len()
     );
 
-    Ok(Json(secrets))
+    Ok(Json(response))
 }
 
 #[post("/secrets/<id>", format = "json", data = "<guess>")]
