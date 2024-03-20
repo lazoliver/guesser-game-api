@@ -116,7 +116,7 @@ GET request for `URL/secrets` or `URL/secrets?guessed=false` will return all ung
 
 ```json
 {
-"secrets": [
+	"secrets": [
 		{
 			"id":  <id>,
 			"guessed":  false,
