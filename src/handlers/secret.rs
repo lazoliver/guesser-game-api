@@ -29,13 +29,14 @@ pub struct GuessSecretRequest {
 
 #[derive(Serialize)]
 pub struct AllSecretsResponse {
-    secrets: Vec<Secret>
+    secrets: Vec<Secret>,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Secret {
     pub id: Uuid,
     pub guessed: bool,
+    pub guess_attempts: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub clue1: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -52,6 +53,7 @@ pub fn process_secret(attempt_rule: AttemptCountRule, entity: SecretEntity) -> S
     Secret {
         id: entity.id,
         guessed: entity.guesser.is_some(),
+        guess_attempts: entity.guess_attempts,
         clue1: match entity.guess_attempts >= attempt_rule.clue1_attempts {
             true => Some(entity.clue1),
             false => None,
@@ -154,11 +156,11 @@ pub async fn get_secret_handler(
 pub async fn get_all_secrets_handler(
     storage: &State<Storage>,
     attempt_rule: &State<AttemptCountRule>,
-    guessed: Option<bool>
+    guessed: Option<bool>,
 ) -> Result<Json<AllSecretsResponse>, status::Custom<Json<Value>>> {
     let with_guessed = match guessed {
         Some(value) => value,
-        None => false 
+        None => false,
     };
 
     let storage_secrets = storage.get_all_secrets(with_guessed).await;
@@ -178,9 +180,7 @@ pub async fn get_all_secrets_handler(
         .map(|secret_entity| process_secret(*attempt_rule.inner(), secret_entity))
         .collect();
 
-    let response = AllSecretsResponse {
-        secrets
-    };
+    let response = AllSecretsResponse { secrets };
 
     debug!(
         "Get All Secrets Handler executed successfully and returned {} items.",
