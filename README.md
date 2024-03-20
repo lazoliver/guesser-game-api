@@ -14,7 +14,7 @@ The Guesser Game API includes useful handlers for daily needs. Below, we list an
 
 **health_handler**
 
-This handler is used to check the health of the API. Make a GET request to the URL/health. If the API is functioning correctly, a status 200 and a JSON will be returned, as shown below:
+This handler is used to check the health of the API. Make a GET request to the `URL/health`. If the API is functioning correctly, a status 200 and a JSON will be returned, as shown below:
 
 ```json
 {
@@ -24,7 +24,7 @@ This handler is used to check the health of the API. Make a GET request to the U
 
 **full_health_handler**
 
-This handler is used to check the health of both the API and the database. Make a GET request to URL/health/full. Depending on the situation, it will return a status 200 or an error, accompanied by a JSON. Examples:
+This handler is used to check the health of both the API and the database. Make a GET request to `URL/health/full`. Depending on the situation, it will return a status 200 or an error, accompanied by a JSON. Examples:
 
 If everything is OK:
 
