@@ -2,7 +2,7 @@
 
 ## What is Guesser Game API?
 
-Guesser Game Api é um jogo, com ele é possível cadastrar uma palavra secreta com três dicas, a cada tentativa incorreta o contado de tentativas é agressido de um. Ao atingir os valores pré-definidos em clue1_attempts, clue2_attempts e clue3_attempts, os valores refetentes a clue1, clue2 e clue3 são revelados. Quando o palpite estiver correto, o valor do segredo é revelado.
+Guesser Game Api is a game in which you can enter a secret word with three clues, and for each incorrect attempt the number of attempts is increased by one. When you reach the predefined values in clue1_attempts, clue2_attempts and clue3_attempts, the values for clue1, clue2 and clue3 are revealed. When the guess is correct, the value of the secret is revealed.
 
 ## Project Structure
 
